@@ -142,15 +142,20 @@ export function exportXLSX({ rows, columns, meta, filename }) {
 
   const { utils, writeFile } = window.XLSX;
 
-  // Строим массив массивов (AOA)
   const aoa = [];
 
-  // Шапка
+  // Заголовок
   aoa.push([meta.title]);
-  aoa.push(["Период:", `${formatDate(meta.from)} — ${formatDate(meta.to)}`]);
-  aoa.push(["Сформировал:", meta.author]);
-  aoa.push(["Дата формирования:", meta.generatedAt]);
-  aoa.push([]); // пустая строка
+  aoa.push([`Период: ${formatDate(meta.from)} — ${formatDate(meta.to)}`]);
+
+  // Контекст (учитель / школа / класс) — одной строкой через " · "
+  if (meta.context && meta.context.length) {
+    const contextLine = meta.context.map((c) => `${c.label}: ${c.value}`).join("   ·   ");
+    aoa.push([contextLine]);
+  }
+
+  aoa.push([`Сформировал: ${meta.author}   ·   Дата: ${meta.generatedAt}`]);
+  aoa.push([]); // пустая
 
   // Заголовки колонок
   aoa.push(columns.map((c) => c.header));
@@ -160,14 +165,14 @@ export function exportXLSX({ rows, columns, meta, filename }) {
     aoa.push(columns.map((c) => c.value(r)));
   });
 
-  // Итоговая строка (если задана)
+  // Итоговая строка
   if (meta.totals) {
     aoa.push(columns.map((c) => (c.total ? c.total(rows) : "")));
   }
 
   const ws = utils.aoa_to_sheet(aoa);
 
-  // Авто-ширина колонок
+  // Авто-ширина
   const colWidths = columns.map((c) => {
     const headerLen = String(c.header).length;
     const maxLen = rows.reduce((max, r) => {
@@ -178,10 +183,14 @@ export function exportXLSX({ rows, columns, meta, filename }) {
   });
   ws["!cols"] = colWidths;
 
-  // Объединяем ячейки шапки
-  ws["!merges"] = [
+  // Объединяем ячейки шапки в одну строку
+  const merges = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: columns.length - 1 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: columns.length - 1 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: columns.length - 1 } },
+    { s: { r: 3, c: 0 }, e: { r: 3, c: columns.length - 1 } },
   ];
+  ws["!merges"] = merges;
 
   const wb = utils.book_new();
   utils.book_append_sheet(wb, ws, "Отчёт");
@@ -189,7 +198,6 @@ export function exportXLSX({ rows, columns, meta, filename }) {
   writeFile(wb, filename);
   toast("Файл Excel сохранён", "success");
 }
-
 // ============================================================
 // ЭКСПОРТ В CSV (для совместимости)
 // ============================================================
@@ -197,6 +205,9 @@ export function exportCSVUniversal({ rows, columns, meta, filename }) {
   const lines = [];
   lines.push(meta.title);
   lines.push(`Период;${formatDate(meta.from)} — ${formatDate(meta.to)}`);
+  if (meta.context && meta.context.length) {
+    lines.push(meta.context.map((c) => `${c.label}: ${c.value}`).join("   ·   "));
+  }
   lines.push(`Сформировал;${meta.author}`);
   lines.push(`Дата формирования;${meta.generatedAt}`);
   lines.push("");
@@ -528,20 +539,59 @@ async function getAuthorName() {
 // ============================================================
 // Превью отчётов (таблицы на экране)
 // ============================================================
-function renderStudentsPreview(container, rows) {
+// ---------- Общий блок «шапки отчёта» на странице ----------
+function renderContextHeader(meta, rowsCount) {
+  const ctxHTML =
+    meta.context && meta.context.length
+      ? meta.context
+          .map(
+            (c) => `
+        <div class="report-ctx-item">
+          <span class="report-ctx-label">${esc(c.label)}:</span>
+          <span class="report-ctx-value">${esc(c.value)}</span>
+        </div>`
+          )
+          .join("")
+      : "";
+
+  return `
+    <div class="report-header-block">
+      <div class="report-header-title">${esc(meta.title)}</div>
+      <div class="report-header-meta">
+        <div class="report-ctx-item">
+          <span class="report-ctx-label">Период:</span>
+          <span class="report-ctx-value">${formatDate(meta.from)} — ${formatDate(meta.to)}</span>
+        </div>
+        ${ctxHTML}
+        <div class="report-ctx-item">
+          <span class="report-ctx-label">Сформировал:</span>
+          <span class="report-ctx-value">${esc(meta.author)}</span>
+        </div>
+        <div class="report-ctx-item">
+          <span class="report-ctx-label">Дата:</span>
+          <span class="report-ctx-value">${esc(meta.generatedAt)}</span>
+        </div>
+      </div>
+      <div class="report-header-count">Найдено строк: ${rowsCount}</div>
+    </div>
+  `;
+}
+
+// ---------- Превью отчёта по ученикам ----------
+function renderStudentsPreview(container, rows, meta) {
   if (!rows.length) {
     container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Нет данных за выбранный период</div>`;
     return;
   }
   container.innerHTML = `
+    ${renderContextHeader(meta, rows.length)}
     <div class="journal-wrap">
       <table class="journal" style="font-size:13px;">
         <thead>
           <tr>
-            <th style="text-align:left;">Учитель</th>
-            <th style="text-align:left;">Школа</th>
-            <th style="text-align:left;">Класс</th>
             <th style="text-align:left;">Ученик</th>
+            <th style="text-align:left;">Родитель</th>
+            <th style="text-align:left;">Телефон</th>
             <th>Посещено</th>
             <th>Пропущено</th>
             <th>Всего</th>
@@ -554,10 +604,9 @@ function renderStudentsPreview(container, rows) {
             .map(
               (r) => `
             <tr>
-              <td style="text-align:left;">${esc(r.teacher_name || r.teacher_email)}</td>
-              <td style="text-align:left;">${esc(r.school_name)}</td>
-              <td style="text-align:left;">${esc(r.class_name)}</td>
               <td style="text-align:left;">${esc(r.student_name)}</td>
+              <td style="text-align:left;">${esc(r.parent_name || "—")}</td>
+              <td style="text-align:left;">${esc(r.parent_phone || "—")}</td>
               <td>${r.present_count}</td>
               <td>${r.absent_count}</td>
               <td>${r.total_lessons}</td>
@@ -569,21 +618,21 @@ function renderStudentsPreview(container, rows) {
         </tbody>
       </table>
     </div>
-    <p class="admin-count" style="margin-top:8px;">Найдено строк: ${rows.length}</p>
   `;
 }
 
-function renderClassesPreview(container, rows) {
+// ---------- Превью отчёта по классам ----------
+function renderClassesPreview(container, rows, meta) {
   if (!rows.length) {
     container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Нет данных за выбранный период</div>`;
     return;
   }
   container.innerHTML = `
+    ${renderContextHeader(meta, rows.length)}
     <div class="journal-wrap">
       <table class="journal" style="font-size:13px;">
         <thead>
           <tr>
-            <th style="text-align:left;">Учитель</th>
             <th style="text-align:left;">Школа</th>
             <th style="text-align:left;">Класс</th>
             <th>Учеников</th>
@@ -598,7 +647,6 @@ function renderClassesPreview(container, rows) {
             .map(
               (r) => `
             <tr>
-              <td style="text-align:left;">${esc(r.teacher_name || r.teacher_email)}</td>
               <td style="text-align:left;">${esc(r.school_name)}</td>
               <td style="text-align:left;">${esc(r.class_name)}</td>
               <td>${r.students_count}</td>
@@ -612,16 +660,17 @@ function renderClassesPreview(container, rows) {
         </tbody>
       </table>
     </div>
-    <p class="admin-count" style="margin-top:8px;">Найдено строк: ${rows.length}</p>
   `;
 }
 
-function renderDaysPreview(container, rows) {
+// ---------- Превью отчёта по дням ----------
+function renderDaysPreview(container, rows, meta) {
   if (!rows.length) {
     container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>Нет данных за выбранный период</div>`;
     return;
   }
   container.innerHTML = `
+    ${renderContextHeader(meta, rows.length)}
     <div class="journal-wrap">
       <table class="journal" style="font-size:13px;">
         <thead>
@@ -629,7 +678,6 @@ function renderDaysPreview(container, rows) {
             <th style="text-align:left;">Дата</th>
             <th style="text-align:left;">Школа</th>
             <th style="text-align:left;">Класс</th>
-            <th style="text-align:left;">Учитель</th>
             <th>Учеников</th>
             <th>Присутствовало</th>
             <th>Отсутствовало</th>
@@ -644,7 +692,6 @@ function renderDaysPreview(container, rows) {
               <td style="text-align:left;">${formatDate(r.lesson_date)}</td>
               <td style="text-align:left;">${esc(r.school_name)}</td>
               <td style="text-align:left;">${esc(r.class_name)}</td>
-              <td style="text-align:left;">${esc(r.teacher_name)}</td>
               <td>${r.total_students}</td>
               <td>${r.present_count}</td>
               <td>${r.absent_count}</td>
@@ -655,6 +702,5 @@ function renderDaysPreview(container, rows) {
         </tbody>
       </table>
     </div>
-    <p class="admin-count" style="margin-top:8px;">Найдено строк: ${rows.length}</p>
   `;
 }
