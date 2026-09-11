@@ -94,8 +94,11 @@ function toISO(d) {
 }
 
 // ---------- Экспорт в CSV ----------
-export function exportCSV(filename, report, className) {
+export function exportCSV(filename, report, className, teacherName = "") {
   const lines = [];
+  if (teacherName) {
+    lines.push(`Учитель;${teacherName}`);
+  }
   lines.push(`Отчёт по классу;${className}`);
   lines.push(`Ученик;Посещено;Пропущено;Всего;Процент;Сумма`);
   report.rows.forEach((r) => {
