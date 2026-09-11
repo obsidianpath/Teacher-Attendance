@@ -64,6 +64,11 @@ import {
   applyTheme,
 } from "./settings.js";
 
+async function getTeacherName() {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.user_metadata?.full_name || "Учитель";
+}
+
 // ============================================================
 // Инициализация
 // ============================================================
@@ -873,8 +878,12 @@ async function renderReports() {
         const report = await buildReport(classId, from, to, price);
         lastReport = report;
         lastClassName = classSel.options[classSel.selectedIndex].textContent;
+       const teacherName = await getTeacherName();
         document.getElementById("rep-result").innerHTML = `
-          <h2>${esc(lastClassName)} · ${formatDate(from)} — ${formatDate(to)}</h2>
+          <div class="report-header">
+            <h2>${esc(lastClassName)} · ${formatDate(from)} — ${formatDate(to)}</h2>
+            <p class="subtitle">Учитель: ${esc(teacherName)}</p>
+          </div>
           ${renderReportTable(report)}
         `;
         document.getElementById("rep-csv-btn").disabled = false;
@@ -884,10 +893,11 @@ async function renderReports() {
       }
     });
 
-    document.getElementById("rep-csv-btn").addEventListener("click", () => {
+    document.getElementById("rep-csv-btn").addEventListener("click", async () => {
       if (!lastReport) return;
+      const teacherName = await getTeacherName();
       const filename = `report_${lastClassName}_${Date.now()}.csv`;
-      exportCSV(filename, lastReport, lastClassName);
+      exportCSV(filename, lastReport, lastClassName, teacherName);
     });
 
     document.getElementById("rep-print-btn").addEventListener("click", () => {
