@@ -38,6 +38,9 @@ export async function signIn(email, password) {
 // ---------- Выход ----------
 export async function signOut() {
   await supabase.auth.signOut();
+  // Сброс кэша админа, чтобы новый вход перепроверил права
+  const { resetAdminCache } = await import("./admin.js");
+  resetAdminCache();
   location.hash = "#/login";
 }
 
