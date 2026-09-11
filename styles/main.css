@@ -920,3 +920,28 @@ body.has-particles .auth-screen {
     display: none;
   }
 }
+
+/* ============================================================
+   ФИО в отчётах
+   ============================================================ */
+
+.report-header {
+  margin-bottom: 16px;
+}
+
+.report-header h2 {
+  margin-bottom: 4px;
+}
+
+.report-header .subtitle {
+  margin: 0;
+}
+
+/* В печати — показываем учителя */
+@media print {
+  .report-header .subtitle {
+    display: block;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+}
