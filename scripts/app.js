@@ -3,7 +3,11 @@
 // ============================================================
 import { showParticles, hideParticles } from "./particles-bg.js";
 import { openImportModal, downloadTemplate } from "./import.js";
-import { checkIsAdmin, renderAdminScreen } from "./admin.js";
+import {
+  checkIsAdmin,
+  renderAdminScreen,
+  renderUserCardScreen,
+} from "./admin.js";
 import { supabase } from "./supabase.js";
 import {
   toast,
@@ -253,7 +257,9 @@ async function route() {
     await renderReports();
   } else if (path === "/settings") {
     await renderSettingsScreen();
-  }  else if (path === "/admin") {
+  } else if (parts[0] === "admin" && parts[1] === "user" && parts[2]) {
+    await renderUserCardScreen(parts[2]);
+  } else if (path === "/admin") {
     await renderAdminScreen();
   } else {
     location.hash = "#/dashboard";
