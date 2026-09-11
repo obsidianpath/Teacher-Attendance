@@ -1,0 +1,50 @@
+/* ============================================================
+   Стили для печати (@media print)
+   ============================================================ */
+
+@media print {
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 12px;
+  }
+
+  .app-header,
+  .report-actions,
+  .report-filters,
+  .class-toolbar .btn,
+  .icon-btn,
+  .back-link,
+  .toast-container,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  main {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  table.report {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  table.report th,
+  table.report td {
+    border: 1px solid #999;
+    padding: 6px 8px;
+  }
+
+  table.report th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  table.report tr.total-row td {
+    background: #ddd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
