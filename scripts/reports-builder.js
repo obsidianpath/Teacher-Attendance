@@ -3,9 +3,8 @@
 // ============================================================
 
 import { supabase } from "./supabase.js";
-import { toast, esc, formatDate, todayISO } from "./ui.js";
+import { toast, esc, formatDate } from "./ui.js";
 import { checkIsAdmin, fetchUsersSummary } from "./admin.js";
-import { fetchSchools, fetchClasses } from "./schools.js";
 
 // ---------- RPC: отчёты ----------
 export async function fetchReportStudents(f) {
