@@ -694,7 +694,7 @@ table.report tr.total-row td {
   font-size: 14px;
   color: var(--text);
   margin-right: 4px;
-  max-width: 180px;
+  max-width: 230px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
