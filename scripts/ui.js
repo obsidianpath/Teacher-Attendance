@@ -125,11 +125,15 @@ export function el(html) {
 
 // ---------- Получение параметров из hash ----------
 export function parseHash() {
-  const hash = location.hash.slice(1) || "/dashboard";
-  const parts = hash.split("/").filter(Boolean);
+  const raw = location.hash.slice(1) || "/dashboard";
+  // Отделяем query-строку (всё после "?")
+  const [hashPath, queryString = ""] = raw.split("?");
+  const parts = hashPath.split("/").filter(Boolean);
+  const params = new URLSearchParams(queryString);
   return {
     path: "/" + parts.join("/"),
     parts,
+    params,
   };
 }
 
