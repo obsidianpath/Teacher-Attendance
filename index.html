@@ -9,6 +9,9 @@
   <link rel="stylesheet" href="./styles/print.css" media="print" />
 </head>
 <body>
+<!-- Фон для страниц авторизации -->
+  <div id="particles-bg" class="particles-bg hidden"></div>
+  
   <!-- Шапка (показывается только после входа) -->
   <header id="app-header" class="app-header hidden">
   <div class="header-left">
@@ -64,6 +67,9 @@
   <!-- Контейнер для модальных окон -->
   <div id="modal-root"></div>
 
+  <!-- particles.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  
   <script type="module" src="./scripts/app.js"></script>
 </body>
 </html>
