@@ -11,17 +11,49 @@
 <body>
   <!-- Шапка (показывается только после входа) -->
   <header id="app-header" class="app-header hidden">
-    <div class="header-left">
-      <a href="#/dashboard" class="logo">📓 <span>Журнал</span></a>
-    </div>
-    <div class="header-right">
-      <span id="user-email" class="user-email"></span>
-      <button id="theme-toggle" class="icon-btn" title="Сменить тему">🎨</button>
-      <a href="#/reports" class="icon-btn" title="Отчёты">📊</a>
-      <a href="#/settings" class="icon-btn" title="Настройки">⚙️</a>
-      <button id="logout-btn" class="icon-btn" title="Выйти">🚪</button>
-    </div>
-  </header>
+  <div class="header-left">
+    <a href="#/dashboard" class="logo">
+      <span class="logo-mark">📓</span>
+      <span class="logo-text">Teacher-Attendance</span>
+    </a>
+  </div>
+
+  <!-- Десктопное меню -->
+  <nav class="header-nav" id="header-nav-desktop">
+    <span id="user-name" class="user-name"></span>
+    <span id="user-email" class="user-email"></span>
+    <a href="#/reports" class="nav-link">
+      <span class="nav-icon">📊</span> Отчёты
+    </a>
+    <a href="#/settings" class="nav-link">
+      <span class="nav-icon">⚙️</span> Настройки
+    </a>
+    <button id="theme-toggle" class="nav-link nav-btn" title="Сменить тему">
+      <span class="nav-icon">🎨</span> Тема
+    </button>
+    <button id="logout-btn" class="nav-link nav-btn nav-danger" title="Выйти">
+      <span class="nav-icon">🚪</span> Выйти
+    </button>
+  </nav>
+
+  <!-- Кнопка-бургер (только на мобильных) -->
+  <button id="burger-btn" class="burger-btn" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- Мобильное меню (выезжает справа) -->
+<div id="mobile-menu-overlay" class="mobile-overlay hidden"></div>
+<aside id="mobile-menu" class="mobile-menu">
+  <div class="mobile-menu-header">
+    <div id="mobile-user-name" class="user-name"></div>
+    <div id="mobile-user-email" class="user-email"></div>
+  </div>
+  <a href="#/reports" class="mobile-link"><span>📊</span> Отчёты</a>
+  <a href="#/settings" class="mobile-link"><span>⚙️</span> Настройки</a>
+  <button id="mobile-theme-btn" class="mobile-link mobile-btn"><span>🎨</span> Сменить тему</button>
+  <button id="mobile-logout-btn" class="mobile-link mobile-btn mobile-danger"><span>🚪</span> Выйти</button>
+</aside>
 
   <!-- Основной контейнер, куда рендерятся экраны -->
   <main id="app"></main>
