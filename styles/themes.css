@@ -1,0 +1,84 @@
+/* ============================================================
+   Темы оформления через CSS-переменные
+   ============================================================ */
+
+:root,
+[data-theme="light"] {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-2: #eef1f6;
+  --text: #1a202c;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --border: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --present: #22c55e;
+  --present-soft: #dcfce7;
+  --absent: #ef4444;
+  --absent-soft: #fee2e2;
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-2: #334155;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --border: #334155;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --present: #22c55e;
+  --present-soft: #14532d;
+  --absent: #ef4444;
+  --absent-soft: #7f1d1d;
+}
+
+[data-theme="blue"] {
+  --bg: #eff6ff;
+  --surface: #ffffff;
+  --surface-2: #dbeafe;
+  --text: #1e3a8a;
+  --muted: #3b82f6;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --border: #bfdbfe;
+  --shadow: 0 1px 3px rgba(30, 58, 138, 0.1);
+  --present: #16a34a;
+  --present-soft: #d1fae5;
+  --absent: #dc2626;
+  --absent-soft: #fee2e2;
+}
+
+[data-theme="green"] {
+  --bg: #f0fdf4;
+  --surface: #ffffff;
+  --surface-2: #dcfce7;
+  --text: #14532d;
+  --muted: #16a34a;
+  --accent: #15803d;
+  --accent-hover: #166534;
+  --border: #bbf7d0;
+  --shadow: 0 1px 3px rgba(20, 83, 45, 0.1);
+  --present: #15803d;
+  --present-soft: #bbf7d0;
+  --absent: #dc2626;
+  --absent-soft: #fee2e2;
+}
+
+[data-theme="warm"] {
+  --bg: #fef9f0;
+  --surface: #fffbf5;
+  --surface-2: #fdf2e0;
+  --text: #4a3520;
+  --muted: #a18060;
+  --accent: #c2410c;
+  --accent-hover: #9a3412;
+  --border: #f0e0c8;
+  --shadow: 0 1px 3px rgba(74, 53, 32, 0.1);
+  --present: #15803d;
+  --present-soft: #d1fae5;
+  --absent: #b91c1c;
+  --absent-soft: #fee2e2;
+}
