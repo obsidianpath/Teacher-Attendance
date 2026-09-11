@@ -1120,3 +1120,20 @@ input[type="file"]::file-selector-button:hover {
   color: var(--muted);
   font-weight: 400;
 }
+/* ============================================================
+   Кнопка danger + disabled
+   ============================================================ */
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-danger:disabled:hover {
+  background: var(--absent);
+}
+
+/* Модалка удаления: компактнее */
+.modal .btn-danger {
+  min-width: 160px;
+}
