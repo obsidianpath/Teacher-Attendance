@@ -237,21 +237,22 @@ export async function renderAdminScreen() {
       )
       .join("");
 
-    // Клик по кнопке
+     // Клик по кнопке или строке → переход в карточку учителя
+    const goToUser = (userId) => {
+      location.hash = `#/admin/user/${userId}`;
+    };
+
     tbody.querySelectorAll('[data-action="detail"]').forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        const userId = e.target.closest("tr").dataset.userId;
-        const user = list.find((u) => u.user_id === userId);
-        await openUserDetailModal(user);
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        goToUser(e.target.closest("tr").dataset.userId);
       });
     });
 
-    // Клик по строке = тоже открыть
     tbody.querySelectorAll("tr[data-user-id]").forEach((tr) => {
       tr.addEventListener("click", (e) => {
         if (e.target.closest("[data-action]")) return;
-        const user = list.find((u) => u.user_id === tr.dataset.userId);
-        openUserDetailModal(user);
+        goToUser(tr.dataset.userId);
       });
     });
   }
@@ -345,5 +346,232 @@ async function openUserDetailModal(user) {
       </div>
     `,
     actions: [{ label: "Закрыть", variant: "btn-secondary", onClick: closeModal }],
+  });
+}
+// ============================================================
+// Функции для карточки учителя
+// ============================================================
+
+export async function fetchUserStats(userId) {
+  const { data, error } = await supabase
+    .rpc("admin_user_stats", { target_user_id: userId })
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchUserSchoolsWithStats(userId) {
+  const { data, error } = await supabase.rpc("admin_user_schools_with_stats", {
+    target_user_id: userId,
+  });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchUserRecentLessons(userId, limit = 10) {
+  const { data, error } = await supabase.rpc("admin_user_recent_lessons", {
+    target_user_id: userId,
+    lim: limit,
+  });
+  if (error) throw error;
+  return data || [];
+}
+
+// Одна карточка учителя из users_summary (для шапки)
+export async function fetchOneUser(userId) {
+  const list = await fetchUsersSummary();
+  return list.find((u) => u.user_id === userId) || null;
+}
+
+// ============================================================
+// ЭКРАН: Карточка учителя
+// ============================================================
+export async function renderUserCardScreen(userId) {
+  const app = document.getElementById("app");
+  app.innerHTML = `<div class="empty">Загрузка...</div>`;
+
+  const isAdmin = await checkIsAdmin();
+  if (!isAdmin) {
+    app.innerHTML = `<div class="empty">
+      <div class="empty-icon">🚫</div>
+      Доступ запрещён
+    </div>`;
+    return;
+  }
+
+  let user, stats, schools, lessons;
+  try {
+    [user, stats, schools, lessons] = await Promise.all([
+      fetchOneUser(userId),
+      fetchUserStats(userId),
+      fetchUserSchoolsWithStats(userId),
+      fetchUserRecentLessons(userId, 10),
+    ]);
+  } catch (err) {
+    app.innerHTML = `<div class="empty">Ошибка: ${esc(err.message)}</div>`;
+    return;
+  }
+
+  if (!user) {
+    app.innerHTML = `<div class="empty">Пользователь не найден</div>`;
+    return;
+  }
+
+  // ---------- Карточки статистики ----------
+  const statCards = [
+    { label: "Школ", value: stats.schools_count, icon: "🏫" },
+    { label: "Классов", value: stats.classes_count, icon: "📚" },
+    { label: "Учеников", value: stats.students_count, icon: "🎓" },
+    { label: "Уроков", value: stats.lessons_count, icon: "📅" },
+    { label: "Отметок", value: stats.attendance_count, icon: "✓" },
+    {
+      label: "Посещаемость",
+      value: Number(stats.avg_attendance).toFixed(1) + "%",
+      icon: "📈",
+    },
+  ]
+    .map(
+      (s) => `
+      <div class="stat">
+        <div class="stat-label">${s.icon} ${s.label}</div>
+        <div class="stat-value">${
+          typeof s.value === "number"
+            ? Number(s.value).toLocaleString("ru-RU")
+            : s.value
+        }</div>
+      </div>`
+    )
+    .join("");
+
+  // ---------- Группировка школ и классов ----------
+  const schoolsMap = new Map();
+  schools.forEach((r) => {
+    if (!schoolsMap.has(r.school_id)) {
+      schoolsMap.set(r.school_id, {
+        id: r.school_id,
+        name: r.school_name,
+        created: r.school_created,
+        classes: [],
+      });
+    }
+    if (r.class_id) {
+      schoolsMap.get(r.school_id).classes.push({
+        id: r.class_id,
+        name: r.class_name,
+        created: r.class_created,
+        students: Number(r.students_count),
+        lessons: Number(r.lessons_count),
+      });
+    }
+  });
+
+  const schoolsHTML = schoolsMap.size
+    ? [...schoolsMap.values()]
+        .map((s) => {
+          const classesHTML = s.classes.length
+            ? `<table class="journal" style="font-size:13px; margin-top:8px;">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;">Класс</th>
+                    <th>Учеников</th>
+                    <th>Уроков</th>
+                    <th>Создан</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${s.classes
+                    .map(
+                      (c) => `
+                    <tr>
+                      <td style="text-align:left; font-weight:500;">${esc(c.name)}</td>
+                      <td>${c.students}</td>
+                      <td>${c.lessons}</td>
+                      <td>${fmtDateTime(c.created)}</td>
+                    </tr>`
+                    )
+                    .join("")}
+                </tbody>
+              </table>`
+            : `<div style="color:var(--muted); font-size:13px; margin-top:6px;">
+                Нет классов
+              </div>`;
+
+          return `
+          <div class="admin-school-block">
+            <div class="admin-school-title">
+              🏫 ${esc(s.name)}
+              <span class="admin-school-meta">создана ${fmtDateTime(s.created)}</span>
+            </div>
+            ${classesHTML}
+          </div>`;
+        })
+        .join("")
+    : `<div class="empty"><div class="empty-icon">📭</div>Учитель ещё не создал ни одной школы</div>`;
+
+  // ---------- Последние уроки ----------
+  const lessonsHTML = lessons.length
+    ? `<table class="journal" style="font-size:13px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Дата</th>
+            <th style="text-align:left;">Школа</th>
+            <th style="text-align:left;">Класс</th>
+            <th>Отмечено</th>
+            <th>Присутствовало</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${lessons
+            .map(
+              (l) => `
+            <tr>
+              <td style="text-align:left;">${formatDate(l.lesson_date)}</td>
+              <td style="text-align:left;">${esc(l.school_name)}</td>
+              <td style="text-align:left;">${esc(l.class_name)}</td>
+              <td>${l.attendance_count}</td>
+              <td>${l.present_count}</td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>`
+    : `<div class="empty" style="padding:20px;">Уроков пока нет</div>`;
+
+  app.innerHTML = `
+    <a href="#/admin" class="back-link">← К списку пользователей</a>
+
+    <div class="class-toolbar">
+      <div>
+        <h1>${esc(user.full_name || "Без имени")}</h1>
+        <p class="subtitle" style="margin:0;">
+          ${esc(user.email)} · зарегистрирован ${fmtDateTime(user.created_at)}
+        </p>
+      </div>
+      <div class="class-actions">
+        <a href="#/admin/reports?teacher=${user.user_id}" class="btn btn-secondary">
+          📊 Отчёт по учителю
+        </a>
+        <button class="btn btn-danger" id="delete-user-btn">🗑️ Удалить аккаунт</button>
+      </div>
+    </div>
+
+    <div class="class-stats" style="margin:16px 0 28px; flex-wrap:wrap;">
+      ${statCards}
+    </div>
+
+    <h2 style="margin-bottom:12px;">Школы и классы</h2>
+    <div style="margin-bottom:28px;">
+      ${schoolsHTML}
+    </div>
+
+    <h2 style="margin-bottom:12px;">Последние уроки</h2>
+    <div class="journal-wrap">
+      ${lessonsHTML}
+    </div>
+  `;
+
+  // Кнопка удаления — пока заглушка, реализуем в 6.3
+  document.getElementById("delete-user-btn").addEventListener("click", () => {
+    toast("Функция удаления будет в следующем обновлении", "info");
   });
 }
