@@ -1002,3 +1002,39 @@ input[type="file"]::file-selector-button:hover {
     padding: 9px 12px;
   }
 }
+
+/* ============================================================
+   Админ-панель
+   ============================================================ */
+
+.admin-users-table {
+  font-size: 14px;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  text-align: center;
+  padding: 10px 12px;
+}
+
+.admin-users-table th:first-child,
+.admin-users-table td:first-child {
+  text-align: left;
+  min-width: 200px;
+}
+
+.admin-users-table tbody tr:hover {
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .admin-users-table {
+    font-size: 13px;
+  }
+
+  .admin-users-table th,
+  .admin-users-table td {
+    padding: 8px 6px;
+  }
+}
