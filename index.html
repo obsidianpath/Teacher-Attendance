@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Журнал посещаемости</title>
+  <link rel="stylesheet" href="./styles/themes.css" />
+  <link rel="stylesheet" href="./styles/main.css" />
+  <link rel="stylesheet" href="./styles/print.css" media="print" />
+</head>
+<body>
+  <!-- Шапка (показывается только после входа) -->
+  <header id="app-header" class="app-header hidden">
+    <div class="header-left">
+      <a href="#/dashboard" class="logo">📓 <span>Журнал</span></a>
+    </div>
+    <div class="header-right">
+      <span id="user-email" class="user-email"></span>
+      <button id="theme-toggle" class="icon-btn" title="Сменить тему">🎨</button>
+      <a href="#/reports" class="icon-btn" title="Отчёты">📊</a>
+      <a href="#/settings" class="icon-btn" title="Настройки">⚙️</a>
+      <button id="logout-btn" class="icon-btn" title="Выйти">🚪</button>
+    </div>
+  </header>
+
+  <!-- Основной контейнер, куда рендерятся экраны -->
+  <main id="app"></main>
+
+  <!-- Контейнер для уведомлений -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Контейнер для модальных окон -->
+  <div id="modal-root"></div>
+
+  <script type="module" src="./scripts/app.js"></script>
+</body>
+</html>
