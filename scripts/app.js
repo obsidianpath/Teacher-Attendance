@@ -2,6 +2,7 @@
 // Главный модуль: роутинг и экраны
 // ============================================================
 import { showParticles, hideParticles } from "./particles-bg.js";
+import { openImportModal, downloadTemplate } from "./import.js";
 import { supabase } from "./supabase.js";
 import {
   toast,
@@ -457,7 +458,9 @@ async function renderClass(classId) {
           <h1>${esc(cls.name)}</h1>
           <p class="subtitle" style="margin:0;">${esc(school.name)}</p>
         </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="class-actions">
+          <button class="btn btn-secondary" id="template-btn">📄 Шаблон</button>
+          <button class="btn btn-secondary" id="import-btn">📥 Импорт</button>
           <button class="btn btn-secondary" id="add-student-btn">+ Ученик</button>
           <button class="btn" id="open-journal-btn">Открыть журнал</button>
         </div>
@@ -480,6 +483,16 @@ async function renderClass(classId) {
 
     document.getElementById("add-student-btn").addEventListener("click", () => {
       openStudentModal({ classId, onSaved: () => renderClass(classId) });
+    });
+    document.getElementById("template-btn").addEventListener("click", () => {
+      downloadTemplate();
+    });
+
+    document.getElementById("import-btn").addEventListener("click", () => {
+      openImportModal({
+        classId,
+        onDone: () => renderClass(classId),
+      });
     });
 
      document.getElementById("open-journal-btn").addEventListener("click", () => {
