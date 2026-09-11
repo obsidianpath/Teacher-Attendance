@@ -570,10 +570,17 @@ export async function renderUserCardScreen(userId) {
     </div>
   `;
 
-  // Кнопка удаления — пока заглушка, реализуем в 6.3
+ // Кнопка удаления
   document.getElementById("delete-user-btn").addEventListener("click", () => {
-    toast("Функция удаления будет в следующем обновлении", "info");
+    openDeleteUserModal(user, () => {
+      toast("Перенаправление к списку...", "info", 1500);
+      setTimeout(() => {
+        location.hash = "#/admin";
+        renderAdminScreen();
+      }, 500);
+    });
   });
+
 }
 // ============================================================
 // Удаление пользователя (только админ)
@@ -593,4 +600,86 @@ export async function deleteUser(userId, confirmEmail) {
     confirm_email: confirmEmail,
   });
   if (error) throw error;
+}
+// ============================================================
+// Модалка подтверждения удаления
+// ============================================================
+export async function openDeleteUserModal(user, onDeleted) {
+  let preview;
+  try {
+    preview = await fetchDeletionPreview(user.user_id);
+  } catch (err) {
+    toast(err.message || "Ошибка", "error");
+    return;
+  }
+
+  const summary = `
+    <div style="background:var(--absent-soft); border-left:4px solid var(--absent);
+                padding:12px 14px; border-radius:8px; margin-bottom:16px;">
+      <div style="font-weight:600; color:var(--absent); margin-bottom:6px;">
+        ⚠️ Это действие необратимо
+      </div>
+      <div style="font-size:13px; color:var(--text);">
+        Будут <b>навсегда удалены</b>:
+        <ul style="margin:8px 0 0 20px;">
+          <li>Аккаунт <b>${esc(preview.email)}</b></li>
+          <li>Школ: <b>${preview.schools_count}</b></li>
+          <li>Классов: <b>${preview.classes_count}</b></li>
+          <li>Учеников: <b>${preview.students_count}</b></li>
+          <li>Уроков: <b>${preview.lessons_count}</b></li>
+          <li>Отметок: <b>${preview.attendance_count}</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="del-confirm">
+        Чтобы подтвердить, введите email пользователя:
+        <b style="color:var(--text);">${esc(preview.email)}</b>
+      </label>
+      <input type="text" id="del-confirm" placeholder="Введите email..." autocomplete="off" />
+    </div>
+  `;
+
+  openModal({
+    title: "Удалить аккаунт учителя?",
+    bodyHTML: summary,
+    actions: [
+      { label: "Отмена", variant: "btn-secondary", onClick: closeModal },
+      {
+        label: "Удалить навсегда",
+        variant: "btn btn-danger",
+        onClick: async ({ close }) => {
+          const input = document.getElementById("del-confirm");
+          const typed = input.value.trim();
+          if (typed.toLowerCase() !== preview.email.toLowerCase()) {
+            toast("Email не совпадает", "error");
+            input.focus();
+            return;
+          }
+          try {
+            await deleteUser(user.user_id, typed);
+            toast("Аккаунт удалён", "success");
+            close();
+            if (onDeleted) onDeleted();
+          } catch (err) {
+            toast(err.message || "Ошибка удаления", "error", 6000);
+          }
+        },
+      },
+    ],
+    onMount: (modal) => {
+      // Активируем/деактивируем кнопку по мере ввода
+      const input = modal.querySelector("#del-confirm");
+      const delBtn = modal.querySelector(".btn-danger");
+      delBtn.disabled = true;
+      delBtn.style.opacity = "0.5";
+
+      input.addEventListener("input", () => {
+        const ok =
+          input.value.trim().toLowerCase() === preview.email.toLowerCase();
+        delBtn.disabled = !ok;
+        delBtn.style.opacity = ok ? "1" : "0.5";
+      });
+    },
+  });
 }
