@@ -72,6 +72,10 @@ export async function renderSettingsScreen() {
   const price = settings?.price_per_student || 0;
   const currentTheme = settings?.theme || localStorage.getItem("theme") || "light";
 
+ // ФИО учителя
+  const { data: userData } = await supabase.auth.getUser();
+  const teacherName = userData?.user?.user_metadata?.full_name || "";
+  
   const themeOptions = [
     { id: "light", name: "Светлая" },
     { id: "dark", name: "Тёмная" },
@@ -90,7 +94,9 @@ export async function renderSettingsScreen() {
   app.innerHTML = `
     <a href="#/dashboard" class="back-link">← Назад</a>
     <h1>Настройки</h1>
-    <p class="subtitle">Персональные параметры журнала</p>
+    <p class="subtitle">
+      ${teacherName ? `${esc(teacherName)} · ` : ""}Персональные параметры журнала
+    </p>
 
     <div style="max-width:520px; display:flex; flex-direction:column; gap:20px;">
       <div class="card" style="cursor:default;">
