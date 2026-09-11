@@ -1137,3 +1137,50 @@ input[type="file"]::file-selector-button:hover {
 .modal .btn-danger {
   min-width: 160px;
 }
+/* ============================================================
+   Шапка отчёта
+   ============================================================ */
+
+.report-header-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.report-header-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.report-header-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-bottom: 8px;
+}
+
+.report-ctx-item {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.report-ctx-label {
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.report-ctx-value {
+  font-weight: 500;
+}
+
+.report-header-count {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
