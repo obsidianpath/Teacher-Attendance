@@ -3,6 +3,7 @@
 // ============================================================
 import { showParticles, hideParticles } from "./particles-bg.js";
 import { openImportModal, downloadTemplate } from "./import.js";
+import { renderAdminReportsScreen } from "./reports-builder.js";
 import {
   checkIsAdmin,
   renderAdminScreen,
@@ -257,6 +258,8 @@ async function route() {
     await renderReports();
   } else if (path === "/settings") {
     await renderSettingsScreen();
+  } else if (path === "/admin/reports") {
+    await renderAdminReportsScreen();
   } else if (parts[0] === "admin" && parts[1] === "user" && parts[2]) {
     await renderUserCardScreen(parts[2]);
   } else if (path === "/admin") {
