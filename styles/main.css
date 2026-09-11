@@ -1038,3 +1038,57 @@ input[type="file"]::file-selector-button:hover {
     padding: 8px 6px;
   }
 }
+
+/* ============================================================
+   Админка: панель поиска и фильтров
+   ============================================================ */
+
+.admin-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.admin-search {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.admin-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.admin-search input {
+  padding-left: 34px;
+}
+
+.admin-toolbar select {
+  min-width: 180px;
+  flex: 0 0 auto;
+}
+
+.admin-count {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  .admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-toolbar select {
+    min-width: auto;
+  }
+}
