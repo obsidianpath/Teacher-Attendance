@@ -1,7 +1,7 @@
 // ============================================================
 // Главный модуль: роутинг и экраны
 // ============================================================
-
+import { showParticles, hideParticles } from "./particles-bg.js";
 import { supabase } from "./supabase.js";
 import {
   toast,
