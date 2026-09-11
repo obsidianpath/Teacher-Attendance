@@ -15,12 +15,44 @@ export function showParticles() {
   const container = document.getElementById("particles-bg");
   if (!container) return;
 
+  // 1. Снять hidden ДО инициализации
   container.classList.remove("hidden");
   document.body.classList.add("has-particles");
 
-  // Если библиотека не загрузилась — тихо выходим (фон просто будет однотонным)
-  if (typeof window.particlesJS !== "function") return;
+  // 2. Дождаться, пока браузер рассчитает размеры контейнера
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const w = container.offsetWidth;
+      const h = container.offsetHeight;
 
+      // 3. Если размеры нулевые — принудительно задать (страховка)
+      if (w === 0 || h === 0) {
+        container.style.position = "fixed";
+        container.style.top = "0";
+        container.style.left = "0";
+        container.style.right = "0";
+        container.style.bottom = "0";
+        container.style.width = "100vw";
+        container.style.height = "100vh";
+      }
+
+      // 4. Ждём загрузку библиотеки (до 3 секунд)
+      const start = Date.now();
+      const tryInit = () => {
+        if (typeof window.particlesJS === "function") {
+          initParticles();
+        } else if (Date.now() - start < 3000) {
+          setTimeout(tryInit, 100);
+        } else {
+          console.warn("particles.js не загрузился");
+        }
+      };
+      tryInit();
+    });
+  });
+}
+
+function initParticles() {
   const accent = getAccent();
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
@@ -37,11 +69,7 @@ export function showParticles() {
         random: true,
         anim: { enable: true, speed: 1, opacity_min: 0.1 },
       },
-      size: {
-        value: 3,
-        random: true,
-        anim: { enable: false },
-      },
+      size: { value: 3, random: true, anim: { enable: false } },
       line_linked: {
         enable: true,
         distance: 140,
@@ -75,6 +103,12 @@ export function showParticles() {
   });
 
   particlesReady = true;
+
+  // 5. Финальный пинок: через мгновение после инициализации
+  //    принудительно обновляем размер canvas
+  setTimeout(() => {
+    window.dispatchEvent(new Event("resize"));
+  }, 100);
 }
 
 // ---------- Скрыть фон ----------
