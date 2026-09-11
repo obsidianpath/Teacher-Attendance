@@ -3,6 +3,7 @@
 // ============================================================
 import { showParticles, hideParticles } from "./particles-bg.js";
 import { openImportModal, downloadTemplate } from "./import.js";
+import { checkIsAdmin, renderAdminScreen } from "./admin.js";
 import { supabase } from "./supabase.js";
 import {
   toast,
@@ -173,14 +174,23 @@ function setupAuthListener() {
 // ============================================================
 // Показ/скрытие шапки
 // ============================================================
-function showHeader(show, email = "", name = "") {
+async function showHeader(show, email = "", name = "") {
   const header = document.getElementById("app-header");
+  const adminLinkDesk = document.getElementById("admin-link");
+  const adminLinkMob = document.getElementById("mobile-admin-link");
+
   if (show) {
     header.classList.remove("hidden");
     document.getElementById("user-email").textContent = email || "";
     document.getElementById("mobile-user-email").textContent = email || "";
     document.getElementById("user-name").textContent = name || "";
     document.getElementById("mobile-user-name").textContent = name || "";
+
+    // Админ-ссылка видна только админам
+    const isAdmin = await checkIsAdmin();
+    const displayAdmin = isAdmin ? "" : "hidden";
+    if (adminLinkDesk) adminLinkDesk.classList.toggle("hidden", !isAdmin);
+    if (adminLinkMob) adminLinkMob.classList.toggle("hidden", !isAdmin);
   } else {
     header.classList.add("hidden");
     closeMobileMenu();
@@ -228,8 +238,8 @@ async function route() {
     return;
   }
 
-  const fullName = user.user_metadata?.full_name || "";
-  showHeader(true, user.email, fullName);
+ const fullName = user.user_metadata?.full_name || "";
+  await showHeader(true, user.email, fullName);
 
   if (path === "/dashboard" || path === "/") {
     await renderDashboard();
@@ -243,6 +253,8 @@ async function route() {
     await renderReports();
   } else if (path === "/settings") {
     await renderSettingsScreen();
+  }  else if (path === "/admin") {
+    await renderAdminScreen();
   } else {
     location.hash = "#/dashboard";
   }
