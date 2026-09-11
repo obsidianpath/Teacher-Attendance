@@ -164,13 +164,17 @@ function setupAuthListener() {
 // ============================================================
 // Показ/скрытие шапки
 // ============================================================
-function showHeader(show, email = "") {
+function showHeader(show, email = "", name = "") {
   const header = document.getElementById("app-header");
   if (show) {
     header.classList.remove("hidden");
     document.getElementById("user-email").textContent = email || "";
+    document.getElementById("mobile-user-email").textContent = email || "";
+    document.getElementById("user-name").textContent = name || "";
+    document.getElementById("mobile-user-name").textContent = name || "";
   } else {
     header.classList.add("hidden");
+    closeMobileMenu();
   }
 }
 
