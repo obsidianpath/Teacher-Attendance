@@ -92,12 +92,15 @@ function setupHeaderHandlers() {
   document.getElementById("mobile-logout-btn").addEventListener("click", handleLogout);
 
   // Смена темы
-  const handleTheme = () => {
+   const handleTheme = () => {
     const themes = ["light", "dark", "blue", "green", "warm"];
     const current = document.documentElement.getAttribute("data-theme") || "light";
     const next = themes[(themes.indexOf(current) + 1) % themes.length];
     applyTheme(next);
     import("./settings.js").then((m) => m.changeTheme(next));
+
+    // Если частицы активны — обновить их цвет под новую тему
+    import("./particles-bg.js").then((m) => m.refreshParticlesColor());
   };
   document.getElementById("theme-toggle").addEventListener("click", handleTheme);
   document.getElementById("mobile-theme-btn").addEventListener("click", () => {
@@ -185,43 +188,48 @@ async function route() {
   const { path, parts } = parseHash();
   const user = await getCurrentUser();
 
-  // Публичные маршруты
+  // Публичные маршруты (страницы авторизации) — с частицами
   if (path === "/login" || path === "/register") {
     if (user) {
       location.hash = "#/dashboard";
       return;
     }
     showHeader(false);
+    showParticles();
     renderAuthScreen(path === "/login" ? "login" : "register");
     return;
   }
 
   if (path === "/forgot-password") {
     showHeader(false);
+    showParticles();
     renderForgotPassword();
     return;
   }
 
   if (path === "/reset-password") {
     showHeader(false);
+    showParticles();
     renderResetPassword();
     return;
   }
 
-  // Защищённые маршруты
+  // Все защищённые маршруты — без частиц
+  hideParticles();
+
   if (!user) {
     location.hash = "#/login";
     return;
   }
 
-   const fullName = user.user_metadata?.full_name || "";
+  const fullName = user.user_metadata?.full_name || "";
   showHeader(true, user.email, fullName);
 
   if (path === "/dashboard" || path === "/") {
     await renderDashboard();
   } else if (parts[0] === "school" && parts[1]) {
     await renderSchool(parts[1]);
-   } else if (parts[0] === "class" && parts[1]) {
+  } else if (parts[0] === "class" && parts[1]) {
     await renderClass(parts[1]);
   } else if (parts[0] === "journal" && parts[1]) {
     await renderJournalRoute(parts[1]);
