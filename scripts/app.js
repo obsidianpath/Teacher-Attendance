@@ -163,8 +163,10 @@ async function route() {
     await renderDashboard();
   } else if (parts[0] === "school" && parts[1]) {
     await renderSchool(parts[1]);
-  } else if (parts[0] === "class" && parts[1]) {
+   } else if (parts[0] === "class" && parts[1]) {
     await renderClass(parts[1]);
+  } else if (parts[0] === "journal" && parts[1]) {
+    await renderJournalRoute(parts[1]);
   } else if (path === "/reports") {
     await renderReports();
   } else if (path === "/settings") {
@@ -409,15 +411,15 @@ async function renderClass(classId) {
       openStudentModal({ classId, onSaved: () => renderClass(classId) });
     });
 
-    document.getElementById("open-journal-btn").addEventListener("click", () => {
-      location.hash = `#/class/${classId}?journal=1`;
+     document.getElementById("open-journal-btn").addEventListener("click", () => {
+      location.hash = `#/journal/${classId}`;
     });
 
     // Если в URL есть ?journal=1 — открываем журнал сразу
-    if (location.hash.includes("journal=1")) {
+    const { params } = parseHash();
+    if (params.get("journal") === "1") {
       setTimeout(() => renderJournal(classId, cls, students), 100);
     }
-
     // Клики по ученикам
     app.querySelectorAll(".card[data-id]").forEach((card) => {
       const id = card.dataset.id;
@@ -448,6 +450,21 @@ async function renderClass(classId) {
         }
       });
     });
+  } catch (err) {
+    app.innerHTML = `<div class="empty">Ошибка: ${esc(err.message)}</div>`;
+  }
+}
+
+// ============================================================
+// Роут: /journal/:classId — открывает журнал класса
+// ============================================================
+async function renderJournalRoute(classId) {
+  const app = document.getElementById("app");
+  app.innerHTML = `<div class="empty">Загрузка...</div>`;
+  try {
+    const cls = await fetchClass(classId);
+    const students = await fetchStudents(classId);
+    await renderJournal(classId, cls, students);
   } catch (err) {
     app.innerHTML = `<div class="empty">Ошибка: ${esc(err.message)}</div>`;
   }
