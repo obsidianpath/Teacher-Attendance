@@ -18,7 +18,36 @@ export async function fetchReportStudents(f) {
   if (error) throw error;
   return data || [];
 }
+// ============================================================
+// Контекст отчёта: определяем учителя / школу / класс по строкам
+// ============================================================
+function contextFromRows(rows, filters, teachers) {
+  const ctx = [];
 
+  // Учитель — если выбран в фильтре
+  if (filters.teacher) {
+    const t = teachers.find((x) => x.user_id === filters.teacher);
+    if (t) ctx.push({ label: "Учитель", value: t.full_name || t.email });
+  }
+
+  // Школа — по уникальным значениям в строках
+  const schools = [...new Set(rows.map((r) => r.school_name).filter(Boolean))];
+  if (schools.length === 1) {
+    ctx.push({ label: "Школа", value: schools[0] });
+  } else if (schools.length > 1) {
+    ctx.push({ label: "Школы", value: `все (${schools.length})` });
+  }
+
+  // Класс — аналогично
+  const classes = [...new Set(rows.map((r) => r.class_name).filter(Boolean))];
+  if (classes.length === 1) {
+    ctx.push({ label: "Класс", value: classes[0] });
+  } else if (classes.length > 1) {
+    ctx.push({ label: "Классы", value: `все (${classes.length})` });
+  }
+
+  return ctx;
+}
 export async function fetchReportClasses(f) {
   const { data, error } = await supabase.rpc("admin_report_classes", {
     p_teacher: f.teacher || null,
@@ -378,10 +407,6 @@ export async function renderAdminReportsScreen() {
       if (type === "students") {
         const rows = await fetchReportStudents(filters);
         const columns = [
-          { header: "Учитель", value: (r) => r.teacher_name },
-          { header: "Email", value: (r) => r.teacher_email },
-          { header: "Школа", value: (r) => r.school_name },
-          { header: "Класс", value: (r) => r.class_name },
           { header: "Ученик", value: (r) => r.student_name },
           { header: "Родитель", value: (r) => r.parent_name },
           { header: "Телефон", value: (r) => r.parent_phone },
@@ -401,16 +426,15 @@ export async function renderAdminReportsScreen() {
             to: filters.to,
             author: await getAuthorName(),
             generatedAt: new Date().toLocaleString("ru-RU"),
+            context: contextFromRows(rows, filters, teachers),
             totals: true,
           },
           filename: `report_students_${filters.from}_${filters.to}.xlsx`,
         };
-        renderStudentsPreview(resultBox, rows);
+       renderStudentsPreview(resultBox, rows, lastBuild.meta);
       } else if (type === "classes") {
         const rows = await fetchReportClasses(filters);
         const columns = [
-          { header: "Учитель", value: (r) => r.teacher_name },
-          { header: "Email", value: (r) => r.teacher_email },
           { header: "Школа", value: (r) => r.school_name },
           { header: "Класс", value: (r) => r.class_name },
           { header: "Учеников", value: (r) => Number(r.students_count) },
@@ -429,18 +453,18 @@ export async function renderAdminReportsScreen() {
             to: filters.to,
             author: await getAuthorName(),
             generatedAt: new Date().toLocaleString("ru-RU"),
+            context: contextFromRows(rows, filters, teachers),
             totals: true,
           },
           filename: `report_classes_${filters.from}_${filters.to}.xlsx`,
         };
-        renderClassesPreview(resultBox, rows);
+           renderClassesPreview(resultBox, rows, lastBuild.meta);
       } else {
         const rows = await fetchReportDays(filters);
         const columns = [
           { header: "Дата", value: (r) => formatDate(r.lesson_date) },
           { header: "Школа", value: (r) => r.school_name },
           { header: "Класс", value: (r) => r.class_name },
-          { header: "Учитель", value: (r) => r.teacher_name },
           { header: "Учеников", value: (r) => Number(r.total_students) },
           { header: "Присутствовало", value: (r) => Number(r.present_count) },
           { header: "Отсутствовало", value: (r) => Number(r.absent_count) },
@@ -456,11 +480,12 @@ export async function renderAdminReportsScreen() {
             to: filters.to,
             author: await getAuthorName(),
             generatedAt: new Date().toLocaleString("ru-RU"),
+            context: contextFromRows(rows, filters, teachers),
             totals: false,
           },
           filename: `report_days_${filters.from}_${filters.to}.xlsx`,
         };
-        renderDaysPreview(resultBox, rows);
+         renderDaysPreview(resultBox, rows, lastBuild.meta);
       }
 
       document.getElementById("rb-xlsx").disabled = false;
