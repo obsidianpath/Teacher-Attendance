@@ -125,4 +125,21 @@
     font-size: 10px;
     margin-top: 4px;
   }
+   .report-header-block {
+    border: 1px solid #999;
+    border-left: 3px solid #333;
+    border-radius: 0;
+    box-shadow: none;
+    page-break-after: avoid;
+  }
+
+  .report-header-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .report-ctx-item {
+    font-size: 11px;
+  }
+   
 }
