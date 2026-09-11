@@ -945,3 +945,60 @@ body.has-particles .auth-screen {
     margin-top: 4px;
   }
 }
+
+/* ============================================================
+   Группа кнопок на странице класса + импорт
+   ============================================================ */
+
+.class-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Кнопка выбора файла */
+input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input[type="file"]:hover {
+  border-color: var(--accent);
+}
+
+input[type="file"]::file-selector-button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  margin-right: 12px;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: var(--accent-hover);
+}
+
+/* На мобильных кнопки — на всю ширину */
+@media (max-width: 640px) {
+  .class-actions {
+    width: 100%;
+  }
+
+  .class-actions .btn {
+    flex: 1;
+    min-width: 120px;
+    font-size: 13px;
+    padding: 9px 12px;
+  }
+}
