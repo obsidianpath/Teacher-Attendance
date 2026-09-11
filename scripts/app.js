@@ -214,7 +214,8 @@ async function route() {
     return;
   }
 
-  showHeader(true, user.email);
+   const fullName = user.user_metadata?.full_name || "";
+  showHeader(true, user.email, fullName);
 
   if (path === "/dashboard" || path === "/") {
     await renderDashboard();
