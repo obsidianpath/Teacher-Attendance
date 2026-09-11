@@ -575,3 +575,22 @@ export async function renderUserCardScreen(userId) {
     toast("Функция удаления будет в следующем обновлении", "info");
   });
 }
+// ============================================================
+// Удаление пользователя (только админ)
+// ============================================================
+
+export async function fetchDeletionPreview(userId) {
+  const { data, error } = await supabase
+    .rpc("admin_user_deletion_preview", { target_user_id: userId })
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteUser(userId, confirmEmail) {
+  const { error } = await supabase.rpc("admin_delete_user", {
+    target_user_id: userId,
+    confirm_email: confirmEmail,
+  });
+  if (error) throw error;
+}
