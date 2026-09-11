@@ -13,8 +13,14 @@ export async function getCurrentUser() {
 }
 
 // ---------- Регистрация ----------
-export async function signUp(email, password) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+export async function signUp(email, password, fullName) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+    },
+  });
   if (error) throw error;
   return data;
 }
@@ -59,8 +65,17 @@ export function renderAuthScreen(mode = "login") {
   app.innerHTML = `
     <div class="auth-screen">
       <h1>${isLogin ? "Вход" : "Регистрация"}</h1>
-      <p class="subtitle">Журнал посещаемости для учителя</p>
+      <p class="subtitle">Teacher-Attendance</p>
       <form id="auth-form">
+        ${
+          isLogin
+            ? ""
+            : `
+          <div class="form-group">
+            <label for="auth-fullname">ФИО</label>
+            <input type="text" id="auth-fullname" required placeholder="Иванов Иван Иванович" autocomplete="name" />
+          </div>`
+        }
         <div class="form-group">
           <label for="auth-email">Email</label>
           <input type="email" id="auth-email" required autocomplete="email" />
@@ -91,6 +106,16 @@ export function renderAuthScreen(mode = "login") {
     const email = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
     const btn = document.getElementById("auth-submit");
+
+    let fullName = "";
+    if (!isLogin) {
+      fullName = document.getElementById("auth-fullname").value.trim();
+      if (!fullName) {
+        toast("Введите ФИО", "error");
+        return;
+      }
+    }
+
     btn.disabled = true;
     btn.textContent = "Подождите...";
 
@@ -100,7 +125,7 @@ export function renderAuthScreen(mode = "login") {
         toast("Вы вошли", "success");
         location.hash = "#/dashboard";
       } else {
-        const data = await signUp(email, password);
+        const data = await signUp(email, password, fullName);
         if (data.session) {
           toast("Аккаунт создан", "success");
           location.hash = "#/dashboard";
